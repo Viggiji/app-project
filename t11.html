@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marine Life Encyclopedia</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter for clean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS for theme and specific styles -->
+    <style>
+        /* This section applies the Inter font family to the entire page */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f9ff; /* A very light blue, like shallow water */
+        }
+
+        /* This is a custom class for the hero background image on the homepage */
+        .hero-background {
+            background-image: url('https://images.unsplash.com/photo-1524704796725-9fc3044a58b2?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* This adds a subtle overlay to the hero section to make text more readable */
+        .hero-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 50, 100, 0.4); /* A semi-transparent dark blue overlay */
+            z-index: 1;
+        }
+
+        /* Ensures content inside the hero overlay is visible on top */
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* A simple transition for interactive elements like buttons and links */
+        .transition-all {
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* --- STYLES FOR PAGE TRANSITIONS --- */
+        /* By default, pages are hidden and transparent */
+        .page {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out; /* This creates the fade effect */
+        }
+        
+        /* The 'active' class will make the page visible and fade it in */
+        .page.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Styles for active admin tabs */
+        .admin-tab.active {
+            border-color: #0891b2; /* cyan-600 */
+            color: #0891b2;
+        }
+
+        /* --- STYLES FOR THE EDIT MODAL --- */
+        /* Smooth transition for the modal's appearance */
+        #edit-species-modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- 
+      ============================================================
+      NAVIGATION BAR (GLOBAL COMPONENT)
+      ============================================================
+    -->
+    <nav class="bg-white/80 backdrop-blur-lg shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo and Branding -->
+                <div class="flex items-center space-x-4">
+                    <svg class="h-8 w-8 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                    </svg>
+                    <span class="text-2xl font-bold text-slate-700 cursor-pointer" onclick="showPage('home')">Marinepedia</span>
+                </div>
+                <!-- Main Navigation Links (This section is hidden for admins) -->
+                <div id="main-nav-links" class="hidden md:flex items-center space-x-6">
+                    <a href="#" onclick="showPage('home')" class="text-gray-600 hover:text-cyan-600 transition-all px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="#" onclick="showPage('explore')" class="text-gray-600 hover:text-cyan-600 transition-all px-3 py-2 rounded-md text-sm font-medium">Explore Species</a>
+                </div>
+                <!-- User/Auth Buttons -->
+                <div class="flex items-center space-x-2">
+                    <!-- Guest View -->
+                    <div id="guest-nav">
+                        <button onclick="showPage('auth')" class="bg-cyan-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-cyan-600 transition-all">Login</button>
+                    </div>
+                    <!-- Logged-in User View -->
+                    <div id="user-nav" class="hidden items-center space-x-4">
+                        <span id="username-display" class="font-semibold"></span>
+                        <button onclick="logout()" class="bg-slate-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-600 transition-all">Logout</button>
+                    </div>
+                     <!-- Admin View -->
+                    <div id="admin-nav" class="hidden items-center space-x-4">
+                         <button onclick="showPage('admin')" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition-all">Admin Dashboard</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 
+      ============================================================
+      MAIN CONTENT AREA
+      ============================================================
+    -->
+    <main>
+        <!-- Pages are inserted here -->
+        <!-- Home Page -->
+        <section id="home" class="page">
+            <div class="hero-background h-[calc(100vh-4rem)] flex items-center justify-center">
+                <div class="hero-overlay absolute inset-0"></div>
+                <div class="hero-content text-center text-white">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-4">Dive into the Ocean's Wonders</h1>
+                    <p class="text-lg md:text-xl mb-8 max-w-2xl mx-auto">Your comprehensive guide to marine life. Start your search below.</p>
+                    <div class="mt-4 max-w-2xl mx-auto"><div class="relative"><input type="search" placeholder="Search for a species (e.g., Clownfish)..." class="w-full p-4 pl-12 rounded-full text-slate-800 border-2 border-transparent focus:outline-none focus:border-cyan-400 shadow-lg"><svg class="w-6 h-6 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Explore Species Page -->
+        <section id="explore" class="page">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <h2 class="text-3xl font-bold text-slate-800 mb-8">Explore Marine Species</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <aside class="md:col-span-1 bg-white p-6 rounded-lg shadow-md h-fit">
+                        <h3 class="text-xl font-semibold mb-4 border-b pb-2">Filters</h3>
+                        <div class="mb-6"><label class="block text-sm font-medium text-gray-700 mb-2">Classification</label><select class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"><option>All</option><option>Fish</option><option>Mammal</option><option>Crustacean</option><option>Mollusk</option></select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Habitat</label><select class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"><option>All</option><option>Coral Reef</option><option>Deep Sea</option><option>Open Ocean</option><option>Arctic Waters</option></select></div>
+                    </aside>
+                    <div id="species-grid" class="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Species Detail Page -->
+        <section id="species-detail" class="page">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <button onclick="showPage('explore')" class="flex items-center text-cyan-600 hover:text-cyan-800 font-semibold mb-6"><svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>Back to Explore</button>
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <div id="admin-controls" class="hidden flex justify-end space-x-2 mb-4"><button class="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-600">Edit</button><button class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600">Delete</button></div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div><h2 id="species-name" class="text-4xl font-bold text-slate-800"></h2><p id="species-scientific-name" class="text-lg text-gray-500 italic"></p></div>
+                        <svg id="bookmark-icon" class="w-8 h-8 text-gray-300 cursor-pointer hover:text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.5 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" /></svg>
+                    </div>
+                    <img id="species-image" src="" alt="" class="w-full h-96 object-cover rounded-lg mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Classification</h3><p id="species-classification" class="text-gray-700"></p></div>
+                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Habitat</h3><p id="species-habitat" class="text-gray-700"></p></div>
+                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Average Lifespan</h3><p id="species-lifespan" class="text-gray-700"></p></div>
+                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Geographic Area</h3><p id="species-geo" class="text-gray-700"></p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Authentication Page -->
+        <section id="auth" class="page">
+            <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
+                    <div><h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2></div>
+                    <form class="mt-8 space-y-6" action="#" method="POST">
+                        <div class="rounded-md shadow-sm -space-y-px">
+                            <div><label for="email-address" class="sr-only">Email address</label><input id="email-address" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 focus:z-10 sm:text-sm" placeholder="Email address"></div>
+                            <div><label for="password" class="sr-only">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 focus:z-10 sm:text-sm" placeholder="Password"></div>
+                        </div>
+                        <div><button type="button" onclick="login('user')" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">Login as User</button><button type="button" onclick="login('admin')" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 mt-2">Login as Admin</button></div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard -->
+        <section id="admin" class="page">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                 <h2 class="text-3xl font-bold text-slate-800 mb-8">Admin Dashboard</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md flex items-center"><div class="bg-cyan-100 text-cyan-600 p-3 rounded-full mr-4"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" /></svg></div><div><p class="text-sm text-gray-500">Total Species</p><p id="total-species-stat" class="text-2xl font-bold">0</p></div></div>
+                    <div class="bg-white p-6 rounded-lg shadow-md flex items-center"><div class="bg-green-100 text-green-600 p-3 rounded-full mr-4"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962a3.75 3.75 0 015.25 0m-5.25 0a3.75 3.75 0 00-5.25 0M3 13.5m0 0l1.5-1.5m-1.5 1.5l-1.5-1.5m1.5 1.5v4.493a2.25 2.25 0 002.25 2.25h1.5a2.25 2.25 0 002.25-2.25v-4.493m-4.5 0l1.5-1.5m-1.5 1.5l-1.5-1.5" /></svg></div><div><p class="text-sm text-gray-500">Classifications</p><p id="total-classifications-stat" class="text-2xl font-bold">0</p></div></div>
+                 </div>
+                 <div class="bg-white p-8 rounded-lg shadow-md">
+                    <div class="mb-6 border-b border-gray-200"><ul class="flex flex-wrap -mb-px text-sm font-medium text-center"><li class="mr-2"><button onclick="showAdminTab('add')" id="add-species-tab-button" class="admin-tab inline-block p-4 border-b-2 rounded-t-lg">Add Species</button></li><li class="mr-2"><button onclick="showAdminTab('manage')" id="manage-species-tab-button" class="admin-tab inline-block p-4 border-b-2 rounded-t-lg border-transparent">Manage Species</button></li></ul></div>
+                    <div>
+                        <div id="add-species-content">
+                            <form id="add-species-form" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label for="species-common-name" class="block text-sm font-medium text-gray-700">Common Name</label><input type="text" id="species-common-name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div><div><label for="species-scientific-name-input" class="block text-sm font-medium text-gray-700">Scientific Name</label><input type="text" id="species-scientific-name-input" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div></div>
+                                <div><label for="species-image-url" class="block text-sm font-medium text-gray-700">Image URL</label><input type="text" id="species-image-url" placeholder="https://..." class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label for="species-classification-input" class="block text-sm font-medium text-gray-700">Classification</label><input type="text" id="species-classification-input" placeholder="e.g., Fish, Mammal" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div><div><label for="species-lifespan-input" class="block text-sm font-medium text-gray-700">Average Lifespan</label><input type="text" id="species-lifespan-input" placeholder="e.g., 10 to 15 years" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div></div>
+                                <div><label for="species-habitat-input" class="block text-sm font-medium text-gray-700">Habitat</label><textarea id="species-habitat-input" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></textarea></div>
+                                <div><label for="species-geo-input" class="block text-sm font-medium text-gray-700">Geographic Area</label><textarea id="species-geo-input" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></textarea></div>
+                                <div class="flex justify-end pt-4"><button type="button" class="bg-cyan-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-cyan-700 transition-all">Add Species to Encyclopedia</button></div>
+                            </form>
+                        </div>
+                        <div id="manage-species-content" class="hidden"><div class="overflow-x-auto"><table class="min-w-full bg-white"><thead class="bg-gray-50"><tr><th class="py-3 px-4 border-b text-left text-sm font-semibold text-gray-600">Name</th><th class="py-3 px-4 border-b text-left text-sm font-semibold text-gray-600">Classification</th><th class="py-3 px-4 border-b text-left text-sm font-semibold text-gray-600">Actions</th></tr></thead><tbody id="manage-species-table-body"></tbody></table></div></div>
+                    </div>
+                 </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 
+      ============================================================
+      FOOTER (GLOBAL COMPONENT)
+      ============================================================
+    -->
+    <footer class="bg-slate-800 text-white">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2024 Marinepedia. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <!-- 
+      ============================================================
+      NEW: EDIT SPECIES MODAL
+      ============================================================
+      This is the pop-up that will appear when an admin clicks "Edit".
+      It is hidden by default.
+    -->
+    <div id="edit-species-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 opacity-0 invisible" style="backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl transform transition-transform duration-300 scale-95">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 class="text-xl font-semibold">Edit Species Information</h3>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <!-- Modal Body (Form) -->
+            <div class="p-6">
+                <form id="edit-species-form" class="space-y-4">
+                    <!-- Hidden input to store the ID of the species being edited -->
+                    <input type="hidden" id="edit-species-id">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label for="edit-species-common-name" class="block text-sm font-medium text-gray-700">Common Name</label><input type="text" id="edit-species-common-name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div>
+                        <div><label for="edit-species-scientific-name" class="block text-sm font-medium text-gray-700">Scientific Name</label><input type="text" id="edit-species-scientific-name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div>
+                    </div>
+                    <div><label for="edit-species-image-url" class="block text-sm font-medium text-gray-700">Image URL</label><input type="text" id="edit-species-image-url" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label for="edit-species-classification" class="block text-sm font-medium text-gray-700">Classification</label><input type="text" id="edit-species-classification" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div>
+                        <div><label for="edit-species-lifespan" class="block text-sm font-medium text-gray-700">Average Lifespan</label><input type="text" id="edit-species-lifespan" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></div>
+                    </div>
+                    <div><label for="edit-species-habitat" class="block text-sm font-medium text-gray-700">Habitat</label><textarea id="edit-species-habitat" rows="2" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></textarea></div>
+                    <div><label for="edit-species-geo" class="block text-sm font-medium text-gray-700">Geographic Area</label><textarea id="edit-species-geo" rows="2" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500"></textarea></div>
+                </form>
+            </div>
+            <!-- Modal Footer -->
+            <div class="flex justify-end items-center p-4 border-t space-x-2">
+                <button onclick="closeEditModal()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-all">Cancel</button>
+                <button onclick="saveSpeciesChanges()" class="bg-cyan-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-cyan-700 transition-all">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 
+      ============================================================
+      JAVASCRIPT LOGIC
+      ============================================================
+    -->
+    <script>
+        // --- DATA SIMULATION ---
+        let dummySpeciesData = [
+            {id: 1, name: 'Clownfish', scientificName: 'Amphiprioninae', image: 'https://images.unsplash.com/photo-1573335553643-d9c91645c793?q=80&w=2070&auto=format&fit=crop', classification: 'Fish', habitat: 'Coral Reefs, specifically in sea anemones.', lifespan: '6 to 10 years', geo: 'Warmer waters of the Indian and Pacific Oceans, including the Red Sea and the Great Barrier Reef.'},
+            {id: 2, name: 'Blue Whale', scientificName: 'Balaenoptera musculus', image: 'https://images.unsplash.com/photo-1633703358918-af88d7733475?q=80&w=1932&auto=format&fit=crop', classification: 'Mammal', habitat: 'Open Ocean, found in all oceans worldwide.', lifespan: '80 to 90 years', geo: 'Migrates from polar feeding grounds in summer to temperate and tropical breeding grounds in winter.'},
+            {id: 3, name: 'Sea Otter', scientificName: 'Enhydra lutris', image: 'https://images.unsplash.com/photo-1590672839845-92736187f54c?q=80&w=2070&auto=format&fit=crop', classification: 'Mammal', habitat: 'Coastal areas, kelp forests.', lifespan: '15 to 20 years', geo: 'Northern and eastern North Pacific Ocean coasts.'},
+            {id: 4, name: 'Giant Pacific Octopus', scientificName: 'Enteroctopus dofleini', image: 'https://placehold.co/600x400/003264/FFFFFF?text=Octopus', classification: 'Mollusk', habitat: 'Deep Sea, coastal waters.', lifespan: '3 to 5 years', geo: 'Temperate waters of the Pacific Ocean, from Japan to California.'}
+        ];
+
+        // --- STATE MANAGEMENT ---
+        let currentUserRole = 'guest'; 
+        let currentPageId = 'home';
+
+        // --- PAGE NAVIGATION LOGIC ---
+        function showPage(pageId) {
+            const currentPage = document.getElementById(currentPageId);
+            const nextPage = document.getElementById(pageId);
+
+            if (currentPage && nextPage && currentPageId !== pageId) {
+                currentPage.classList.remove('active');
+                
+                setTimeout(() => {
+                    currentPage.style.display = 'none';
+                    nextPage.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        nextPage.classList.add('active');
+                    }, 20);
+
+                }, 400); 
+
+                currentPageId = pageId;
+                updateNav();
+                window.scrollTo(0, 0);
+            } else if (nextPage && !document.querySelector('.page.active')) {
+                nextPage.style.display = 'block';
+                setTimeout(() => { nextPage.classList.add('active'); }, 20);
+                currentPageId = pageId;
+            }
+        }
+
+        // --- DYNAMIC CONTENT & ADMIN FEATURES ---
+        
+        function populateSpeciesGrid() {
+            const grid = document.getElementById('species-grid');
+            if(!grid) return;
+            grid.innerHTML = ''; 
+            dummySpeciesData.forEach(species => {
+                const cardHTML = `<div class="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow" onclick="viewSpeciesDetail(${species.id})"><img src="${species.image}" alt="${species.name}" class="w-full h-48 object-cover"><div class="p-4"><h3 class="text-lg font-semibold">${species.name}</h3><p class="text-sm text-gray-500">${species.classification}</p></div></div>`;
+                grid.innerHTML += cardHTML;
+            });
+        }
+        
+        function viewSpeciesDetail(speciesId) {
+            const species = dummySpeciesData.find(s => s.id === speciesId);
+            if (species) {
+                document.getElementById('species-name').innerText = species.name;
+                document.getElementById('species-scientific-name').innerText = species.scientificName;
+                document.getElementById('species-image').src = species.image;
+                document.getElementById('species-classification').innerText = species.classification;
+                document.getElementById('species-habitat').innerText = species.habitat;
+                document.getElementById('species-lifespan').innerText = species.lifespan;
+                document.getElementById('species-geo').innerText = species.geo;
+                showPage('species-detail');
+            }
+        }
+
+        function populateManageSpeciesTable() {
+            const tableBody = document.getElementById('manage-species-table-body');
+            if(!tableBody) return;
+            tableBody.innerHTML = '';
+            dummySpeciesData.forEach(species => {
+                const rowHTML = `
+                    <tr class="hover:bg-gray-50">
+                        <td class="py-3 px-4 border-b">${species.name}</td>
+                        <td class="py-3 px-4 border-b">${species.classification}</td>
+                        <td class="py-3 px-4 border-b">
+                            <button onclick="openEditModal(${species.id})" class="text-yellow-600 hover:underline text-sm font-semibold">Edit</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += rowHTML;
+            });
+        }
+        
+        function updateAdminStats() {
+            document.getElementById('total-species-stat').innerText = dummySpeciesData.length;
+            const classifications = new Set(dummySpeciesData.map(s => s.classification));
+            document.getElementById('total-classifications-stat').innerText = classifications.size;
+        }
+        
+        function showAdminTab(tabName) {
+            const addContent = document.getElementById('add-species-content');
+            const manageContent = document.getElementById('manage-species-content');
+            const addButton = document.getElementById('add-species-tab-button');
+            const manageButton = document.getElementById('manage-species-tab-button');
+
+            if (tabName === 'add') {
+                addContent.style.display = 'block';
+                manageContent.style.display = 'none';
+                addButton.classList.add('active');
+                manageButton.classList.remove('active');
+            } else {
+                addContent.style.display = 'none';
+                manageContent.style.display = 'block';
+                addButton.classList.remove('active');
+                manageButton.classList.add('active');
+            }
+        }
+        
+        // --- MODAL LOGIC (NEW) ---
+
+        // Function to open the edit modal and populate it with data
+        function openEditModal(speciesId) {
+            const species = dummySpeciesData.find(s => s.id === speciesId);
+            if (!species) return;
+
+            // Populate the form fields
+            document.getElementById('edit-species-id').value = species.id;
+            document.getElementById('edit-species-common-name').value = species.name;
+            document.getElementById('edit-species-scientific-name').value = species.scientificName;
+            document.getElementById('edit-species-image-url').value = species.image;
+            document.getElementById('edit-species-classification').value = species.classification;
+            document.getElementById('edit-species-lifespan').value = species.lifespan;
+            document.getElementById('edit-species-habitat').value = species.habitat;
+            document.getElementById('edit-species-geo').value = species.geo;
+            
+            // Show the modal with a smooth transition
+            const modal = document.getElementById('edit-species-modal');
+            modal.classList.remove('hidden', 'invisible', 'opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+        }
+
+        // Function to close the edit modal
+        function closeEditModal() {
+            const modal = document.getElementById('edit-species-modal');
+            modal.classList.add('opacity-0', 'invisible');
+            modal.querySelector('div').classList.add('scale-95');
+             setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // Wait for transition to finish
+        }
+
+        // Function to "save" the changes (simulation)
+        function saveSpeciesChanges() {
+            const speciesId = parseInt(document.getElementById('edit-species-id').value);
+            const speciesIndex = dummySpeciesData.findIndex(s => s.id === speciesId);
+            
+            if (speciesIndex > -1) {
+                // Update the data in our dummy array
+                dummySpeciesData[speciesIndex] = {
+                    id: speciesId,
+                    name: document.getElementById('edit-species-common-name').value,
+                    scientificName: document.getElementById('edit-species-scientific-name').value,
+                    image: document.getElementById('edit-species-image-url').value,
+                    classification: document.getElementById('edit-species-classification').value,
+                    lifespan: document.getElementById('edit-species-lifespan').value,
+                    habitat: document.getElementById('edit-species-habitat').value,
+                    geo: document.getElementById('edit-species-geo').value,
+                };
+
+                // Re-render the tables/grids to reflect the changes
+                populateManageSpeciesTable();
+                populateSpeciesGrid();
+
+                console.log("Updated Species Data:", dummySpeciesData[speciesIndex]);
+            }
+
+            closeEditModal();
+        }
+
+        // --- AUTHENTICATION SIMULATION ---
+        
+        function updateNav() {
+            const guestNav = document.getElementById('guest-nav');
+            const userNav = document.getElementById('user-nav');
+            const adminNav = document.getElementById('admin-nav');
+            const adminControls = document.getElementById('admin-controls');
+            const mainNavLinks = document.getElementById('main-nav-links');
+
+            guestNav.style.display = 'none';
+            userNav.style.display = 'none';
+            adminNav.style.display = 'none';
+            adminControls.classList.add('hidden');
+            mainNavLinks.style.display = '';
+
+            if (currentUserRole === 'guest') {
+                guestNav.style.display = 'flex';
+            } else if (currentUserRole === 'user') {
+                document.getElementById('username-display').innerText = 'Welcome, User!';
+                userNav.style.display = 'flex';
+            } else if (currentUserRole === 'admin') {
+                document.getElementById('username-display').innerText = 'Welcome, Admin!';
+                userNav.style.display = 'flex';
+                adminControls.classList.remove('hidden');
+                mainNavLinks.style.display = 'none';
+                
+                if (currentPageId !== 'admin') {
+                    adminNav.style.display = 'flex';
+                }
+            }
+        }
+
+        function login(role) {
+            currentUserRole = role; 
+            if(role === 'admin'){
+                showPage('admin');
+            } else {
+                showPage('home');
+            }
+            updateNav();
+        }
+
+        function logout() {
+            currentUserRole = 'guest'; 
+            showPage('home');
+            updateNav();
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateSpeciesGrid();
+            populateManageSpeciesTable();
+            updateAdminStats();
+            showAdminTab('add');
+            updateNav();
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            showPage('home');
+        });
+
+    </script>
+</body>
+</html>
+
