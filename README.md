@@ -1,7 +1,3 @@
-Perfect — here’s a more polished and **human, professional-looking README** for your project **“MarinePedia — The Marine Life Encyclopedia”**.
-It includes engaging descriptions, emojis, and structure that make it feel like a real open-source project.
-
----
 
 # 🌊 **MarinePedia — The Marine Life Encyclopedia**
 
