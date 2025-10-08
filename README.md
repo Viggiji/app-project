@@ -39,31 +39,9 @@ Users can browse categories, explore species, and view rich details — includin
 | Category                | Tools Used                          |
 | ----------------------- | ----------------------------------- |
 | **Frontend**            | HTML, CSS, JavaScript               |
-| **Optional Frameworks** | React / Vite (if used)              |
+| **Optional Frameworks** | React                               |
 | **Styling**             | Tailwind CSS / Custom CSS           |
-| **Hosting**             | [Netlify](https://www.netlify.com/) |
 | **Version Control**     | Git & GitHub                        |
-
----
-
-## 🌊 **Future Enhancements**
-
-* 🌐 API integration for live marine data
-* 🧭 Interactive maps showing species habitats
-* 📸 Image gallery and 3D models of sea creatures
-* 💬 User accounts for bookmarking favorite species
-
----
-
-## 👩‍💻 **Contributing**
-
-Contributions are welcome!
-If you’d like to improve MarinePedia:
-
-1. Fork the repository
-2. Create a new branch (`feature/new-section`)
-3. Commit your changes
-4. Submit a pull request
 
 ---
 
