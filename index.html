@@ -22,8 +22,7 @@
                 </div>
                 <div id="user-view" class="hidden">
                     <span id="user-greeting"></span>
-                    <button onclick="logout()">Logout</button>
-                </div>
+                    <button onclick="handleLogout()">Logout</button> </div>
                 <div id="admin-button-container" class="hidden">
                     <button onclick="showPage('admin')">Admin Dashboard</button>
                 </div>
@@ -38,7 +37,7 @@
                 <div class="hero-content">
                     <h1>Dive into the Ocean's Wonders</h1>
                     <p>Your comprehensive guide to marine life. Start your search below.</p>
-                    <input type="search" placeholder="Search for a species (e.g., Clownfish)..." oninput="filterSpecies(this.value)">
+                    <input type="search" id="home-search-input" placeholder="Search for a species (e.g., Clownfish)...">
                 </div>
             </div>
         </section>
@@ -77,7 +76,7 @@
             <div class="container">
                 <h2>My Bookmarked Species</h2>
                 <div id="bookmarks-grid" class="species-grid">
-                    </div>
+                </div>
             </div>
         </section>
 
@@ -105,18 +104,19 @@
             </div>
         </section>
 
+
         <section id="auth" class="page">
             <div class="auth-card">
-                <h2>Sign in to your account</h2>
-                <form>
-                    <input type="email" id="login-email" placeholder="Email address">
-                    <input type="password" id="login-password" placeholder="Password">
-                    <button type="button" onclick="loginUser('user')">Login as User</button>
-                    <button type="button" onclick="loginUser('admin')">Login as Admin</button>
+                <h2 id="auth-title">Sign in to your account</h2>
+                <form id="auth-form">
+                    <input type="email" id="login-email" placeholder="Email address" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                    
+                    <p id="auth-error" class="error-message"></p> <button type"button" id="login-button">Login</button>
+                    <button type="button" id="signup-button">Sign Up</button>
                 </form>
             </div>
         </section>
-
         <section id="admin" class="page">
             <div class="container">
                 <h2>Admin Dashboard</h2>
@@ -127,6 +127,7 @@
                 <div class="admin-tabs">
                     <button id="add-species-tab-button" onclick="setAdminTab('add')">Add Species</button>
                     <button id="manage-species-tab-button" onclick="setAdminTab('manage')">Manage Species</button>
+
                 </div>
                 <div id="add-species-content">
                     <form id="add-species-form">
@@ -173,9 +174,11 @@
     </div>
 
     <footer>
-        <p>&copy; 2024 Marinepedia. All rights reserved.</p>
+        <p>&copy; Made by Vighnesh,Shilpi,Asavare.</p>
     </footer>
 
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

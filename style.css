@@ -1,7 +1,5 @@
-/* === Google Font === */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-/* === CSS Variables === */
 :root {
     --primary-color: #005f73;
     --secondary-color: #0a9396;
@@ -12,7 +10,6 @@
     --border-radius: 8px;
 }
 
-/* === Global Styles === */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -49,7 +46,8 @@ img {
 }
 .hidden { display: none !important; }
 
-/* === Navigation Bar === */
+
+/* === Navigation === */
 nav {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
@@ -109,7 +107,7 @@ nav .logo {
     font-weight: 600;
 }
 
-/* === Buttons & Forms === */
+/* === General Elements === */
 button {
     padding: 0.6rem 1.2rem;
     border: none;
@@ -299,6 +297,17 @@ form button {
     box-shadow: var(--shadow);
 }
 .auth-card h2 { text-align: center; margin-bottom: 1.5rem; }
+
+.error-message {
+    color: #D8000C; /* Red */
+    background-color: #FFD2D2;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    display: none; /* Hidden by default */
+    text-align: center;
+    font-size: 0.9rem;
+}
 
 /* === Admin Dashboard === */
 #admin .container {
