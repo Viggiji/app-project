@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marine Life Encyclopedia</title>
+    <!-- Link to the external CSS file -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <nav>
@@ -13,7 +16,7 @@
             <div class="logo" onclick="showPage('home')">Marinepedia</div>
             <div id="main-nav-links">
                 <a href="#" onclick="showPage('home')">Home</a>
-                <a href="#" onclick="showPage('explore')">Explore Species</a>
+                <a href="#" onclick="showPage('explore', 'first')">Explore Species</a>
                 <a href="#" id="bookmarks-nav-link" class="hidden" onclick="showPage('bookmarks')">My Bookmarks</a>
             </div>
             <div class="nav-buttons">
@@ -22,7 +25,8 @@
                 </div>
                 <div id="user-view" class="hidden">
                     <span id="user-greeting"></span>
-                    <button onclick="handleLogout()">Logout</button> </div>
+                    <button onclick="handleLogout()">Logout</button>
+                </div>
                 <div id="admin-button-container" class="hidden">
                     <button onclick="showPage('admin')">Admin Dashboard</button>
                 </div>
@@ -31,17 +35,27 @@
     </nav>
 
     <main>
+        <!-- Home Page (Hero) -->
         <section id="home" class="page">
             <div class="hero">
                 <div class="hero-overlay"></div>
                 <div class="hero-content">
                     <h1>Dive into the Ocean's Wonders</h1>
                     <p>Your comprehensive guide to marine life. Start your search below.</p>
-                    <input type="search" id="home-search-input" placeholder="Search for a species (e.g., Clownfish)...">
+                    <!-- Form for search submission -->
+                    <form id="home-search-form" class="home-search-container">
+                        <input type="search" id="home-search-input"
+                            placeholder="Search any species (e.g., Megalodon)...">
+                    </form>
+                    <!-- NEW: Suggestions box -->
+                    <div id="home-search-suggestions" class="hidden">
+                        <!-- Autocomplete suggestions will appear here -->
+                    </div>
                 </div>
             </div>
         </section>
 
+        <!-- Explore Page (Firebase Loader) -->
         <section id="explore" class="page">
             <div class="container">
                 <h2>Explore Marine Species</h2>
@@ -67,25 +81,60 @@
                             </select>
                         </label>
                     </aside>
-                    <div id="species-grid" class="species-grid"></div>
+                    <!-- This div will hold the grid and pagination -->
+                    <div>
+                        <div id="species-grid" class="species-grid">
+                            <!-- Firebase species cards will be rendered here -->
+                        </div>
+                        <!-- NEW: Explore Pagination -->
+                        <div id="explore-pagination" class="pagination-controls">
+                            <button id="explore-prev" onclick="showPage('explore', 'prev')" disabled>← Previous</button>
+                            <span>Page <span id="explore-page-num">1</span></span>
+                            <button id="explore-next" onclick="showPage('explore', 'next')" disabled>Next →</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
+        <!-- --- NEW: Search Results Page (API Loader) --- -->
+        <section id="search-results" class="page">
+            <div class="container">
+                <h2>Search Results</h2>
+                <p class="search-query-display">Showing results for "<span id="search-query-display"></span>"</p>
+
+                <div id="search-results-grid" class="species-grid">
+                    <!-- Live API search results will be rendered here -->
+                </div>
+
+                <div id="search-pagination" class="pagination-controls">
+                    <button id="search-prev">← Previous</button>
+                    <span>Page <span id="search-page-num">1</span></span>
+                    <button id="search-next">Next →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bookmarks Page -->
         <section id="bookmarks" class="page">
             <div class="container">
                 <h2>My Bookmarked Species</h2>
                 <div id="bookmarks-grid" class="species-grid">
+                    <!-- Bookmarked species will be rendered here -->
                 </div>
             </div>
         </section>
 
         <section id="species-detail" class="page">
             <div class="container">
-                <button onclick="showPage('explore')">← Back to Explore</button>
+                <button onclick="goBack()">← Back</button>
                 <div class="species-detail-card">
                     <div class="detail-actions">
-                         <button id="bookmark-btn" class="hidden" onclick="toggleBookmark()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> <span>Bookmark</span></button>
+                        <button id="bookmark-btn" class="hidden" onclick="toggleBookmark(null, event)"><svg
+                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="none" d="M0 0h24v24H0z" />
+                                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                            </svg> <span>Bookmark</span></button>
                         <div id="admin-controls" class="hidden">
                             <button onclick="openEditModal()">Edit</button>
                             <button onclick="deleteSpecies()">Delete</button>
@@ -93,7 +142,7 @@
                     </div>
                     <h2 id="species-name"></h2>
                     <p id="species-scientific-name"></p>
-                    <img id="species-image" src="" alt="">
+                    <img id="species-image" src="" alt="" onerror="this.src='https://placehold.co/600x400/005f73/FFF?text=Image+Not+Found';">
                     <div class="details-grid">
                         <div><strong>Classification:</strong> <span id="species-classification"></span></div>
                         <div><strong>Habitat:</strong> <span id="species-habitat"></span></div>
@@ -104,19 +153,22 @@
             </div>
         </section>
 
-
+        <!-- Auth Page -->
         <section id="auth" class="page">
             <div class="auth-card">
                 <h2 id="auth-title">Sign in to your account</h2>
                 <form id="auth-form">
                     <input type="email" id="login-email" placeholder="Email address" required>
                     <input type="password" id="login-password" placeholder="Password" required>
-                    
-                    <p id="auth-error" class="error-message"></p> <button type"button" id="login-button">Login</button>
+
+                    <p id="auth-error" class="error-message"></p>
+                    <button type="button" id="login-button">Login</button>
                     <button type="button" id="signup-button">Sign Up</button>
                 </form>
             </div>
         </section>
+
+        <!-- Admin Page -->
         <section id="admin" class="page">
             <div class="container">
                 <h2>Admin Dashboard</h2>
@@ -125,11 +177,13 @@
                     <div>Classifications: <span id="total-classifications-stat"></span></div>
                 </div>
                 <div class="admin-tabs">
-                    <button id="add-species-tab-button" onclick="setAdminTab('add')">Add Species</button>
-                    <button id="manage-species-tab-button" onclick="setAdminTab('manage')">Manage Species</button>
-
+                    <button id="add-species-tab-button" class="admin-tab-btn" onclick="setAdminTab('add')">Add
+                        Species</button>
+                    <button id="manage-species-tab-button" class="admin-tab-btn"
+                        onclick="setAdminTab('manage')">Manage Species</button>
                 </div>
-                <div id="add-species-content">
+
+                <div id="add-species-content" class="admin-tab-content">
                     <form id="add-species-form">
                         <input type="text" id="species-common-name" placeholder="Common Name">
                         <input type="text" id="species-scientific-name-input" placeholder="Scientific Name">
@@ -141,18 +195,26 @@
                         <button type="button" onclick="addSpecies()">Add Species</button>
                     </form>
                 </div>
-                <div id="manage-species-content" class="hidden">
+
+                <div id="manage-species-content" class="admin-tab-content hidden">
                     <table>
                         <thead>
-                            <tr><th>Name</th><th>Classification</th><th>Actions</th></tr>
+                            <tr>
+                                <th>Name</th>
+                                <th>Classification</th>
+                                <th>Actions</th>
+                            </tr>
                         </thead>
-                        <tbody id="manage-species-table-body"></tbody>
+                        <tbody id="manage-species-table-body">
+                            <!-- Admin table rows will be rendered here -->
+                        </tbody>
                     </table>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- Edit Modal -->
     <div id="edit-modal" class="modal hidden">
         <div class="modal-content">
             <h3>Edit Species</h3>
@@ -167,18 +229,50 @@
                 <textarea id="edit-geo" placeholder="Geographic Area"></textarea>
             </form>
             <div class="modal-buttons">
-                <button onclick="closeEditModal()">Cancel</button>
+                <button class="secondary" onclick="closeEditModal()">Cancel</button>
                 <button onclick="saveEdit()">Save Changes</button>
             </div>
         </div>
     </div>
 
+    <!-- --- NEW: Alert Modal (replaces alert()) --- -->
+    <div id="alert-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="alert-title">Notification</h3>
+            <p id="alert-message"></p>
+            <div class="modal-buttons">
+                <button id="alert-ok-btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- NEW: Confirm Modal (replaces confirm()) --- -->
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="confirm-title">Confirm</h3>
+            <p id="confirm-message"></p>
+            <div class="modal-buttons">
+                <button class="secondary" id="confirm-cancel-btn">Cancel</button>
+                <button id="confirm-ok-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- --- NEW: Loading Spinner --- -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="loader-spinner"></div>
+    </div>
+
     <footer>
-        <p>&copy; Made by Vighnesh,Shilpi,Asavare.</p>
+        <p>&copy; 2024 Marinepedia. Made by Vighnesh, Shilpi, Asavare.</p>
     </footer>
 
+    <!-- Firebase SDKs (Compat version as per your file) -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Link to the external JavaScript file -->
     <script src="script.js"></script>
 </body>
 </html>
